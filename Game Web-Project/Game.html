@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match Game | TONNYGFX Design</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+
+        body.dark-theme {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* Header */
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        /* Game Info */
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 25px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 24px;
+            border-radius: 12px;
+            min-width: 100px;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .stat-box span:last-child {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .controls button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .controls button:hover {
+            background: #ff5252;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .controls button#theme-toggle {
+            background: #4ecdc4;
+        }
+
+        .controls button#theme-toggle:hover {
+            background: #26a69a;
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        /* Game Board */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .card {
+            height: 120px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+            background: white;
+            color: #333;
+        }
+
+        .card .front,
+        .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card .front {
+            background: white;
+            color: #333;
+            transform: rotateY(180deg);
+        }
+
+        .card .back {
+            background: linear-gradient(45deg, #4776E6, #8E54E9);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .card.matched .front {
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            color: white;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.05); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* Message */
+        .message {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        #message-text {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        #play-again {
+            background: #00cec9;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #play-again:hover {
+            background: #00b894;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Watermark Section */
+        .watermark-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .watermark-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .designer-info {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .designer-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .designer-title {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .logo-watermark {
+            width: 250px;
+            height: auto;
+            opacity: 0.85;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .logo-watermark:hover {
+            opacity: 1;
+            transform: scale(1.02);
+            filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .project-credit {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+        .about-btn {
+    background: #c5bc41;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.about-btn:hover {
+    background: #5b4bd8;
+    transform: translateY(-3px);
+}
+
+        .project-credit i {
+            color: #ff6b6b;
+            margin: 0 5px;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+            
+            .card {
+                height: 80px;
+                font-size: 2rem;
+            }
+            
+            .stats {
+                gap: 10px;
+            }
+            
+            .stat-box {
+                padding: 10px 15px;
+                min-width: 80px;
+            }
+            
+            .stat-box span:last-child {
+                font-size: 1.5rem;
+            }
+            
+            .controls button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+                margin-top: 10px;
+            }
+            
+            .logo-watermark {
+                width: 160px;
+            }
+            
+            .designer-name {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .game-board {
+                gap: 8px;
+            }
+            
+            .card {
+                height: 70px;
+                font-size: 1.8rem;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+            }
+            
+            .stat-box {
+                width: 100%;
+                min-width: auto;
+            }
+            
+            .controls {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .controls button {
+                flex: 1;
+                margin: 0 5px;
+            }
+            
+            .logo-watermark {
+                width: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-brain"></i> Memory Match</h1>
+            <p class="subtitle">Flip cards to find matching pairs. Train your brain!</p>
+        </header>
+
+        <div class="game-info">
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Moves</span>
+                    <span id="moves">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Time</span>
+                    <span id="timer">0s</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Score</span>
+                    <span id="score">0</span>
+                </div>
+            </div>
+
+           <div class="controls">
+    <button id="restart"><i class="fas fa-redo"></i> Restart</button>
+    <button id="theme-toggle"><i class="fas fa-palette"></i> Theme</button>
+    <br><br>
+  <a href="c:\Users\Pluto\Desktop\Web Project\About Us page.html" class="about-btn">
+    <i class="fas fa-info-circle"></i> About US
+</a>
+</div>
+        </div>
+
+        <div class="game-board" id="game-board">
+            <!-- Cards by Java -->
+        </div>
+
+        <div class="message" id="message">
+            <h2 id="message-text">Find all matching pairs!</h2>
+
+            <button id="play-again" class="hidden">Play Again</button>
+        </div>
+
+        <!-- JONNYGFX Watermark -->
+        <div class="watermark-section">
+            <div class="watermark-container">
+                <div class="designer-info">
+                    <div class="designer-name">JONNYGFX</div>
+                    <div class="designer-title">Graphics & Illusion Designer</div>
+                </div>
+                
+                <!-- LOGO -->
+                <img src="c:\Users\Pluto\Desktop\Jonny GFX PR Works\Graphics Motions\JonnyGFX\J logo Project Png 2.png" alt="JONNYGFX Logo" class="logo-watermark">
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti effect library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const gameBoard = document.getElementById('game-board');
+            const movesElement = document.getElementById('moves');
+            const timerElement = document.getElementById('timer');
+            const scoreElement = document.getElementById('score');
+            const restartButton = document.getElementById('restart');
+            const themeToggle = document.getElementById('theme-toggle');
+            const messageText = document.getElementById('message-text');
+            const playAgainButton = document.getElementById('play-again');
+
+            // Game variables
+            let cards = [];
+            let flippedCards = [];
+            let moves = 0;
+            let score = 0;
+            let matchedPairs = 0;
+            let timer = 0;
+            let timerInterval = null;
+            let gameStarted = false;
+            const totalPairs = 8;
+
+            // Emoji/icons for cards (8 pairs) - you can change these to match your style
+            const icons = ['🎨', '✨', '💎', '🔥', '🌈', '🌟', '⚡', '🦄', '🎨', '✨', '💎', '🔥', '🌈', '🌟', '⚡', '🦄'];
+
+            // Initialize game
+            function initGame() {
+                // Reset variables
+                moves = 0;
+                score = 0;
+                matchedPairs = 0;
+                timer = 0;
+                gameStarted = false;
+                flippedCards = [];
+                cards = [];
+
+                // Clear board
+                gameBoard.innerHTML = '';
+                movesElement.textContent = '0';
+                scoreElement.textContent = '0';
+                timerElement.textContent = '0s';
+                messageText.textContent = 'Find all matching pairs!';
+                playAgainButton.classList.add('hidden');
+
+                // Stop timer if running
+                if (timerInterval) clearInterval(timerInterval);
+
+                // Shuffle icons
+                const shuffledIcons = [...icons].sort(() => Math.random() - 0.5);
+
+                // Create cards
+                for (let i = 0; i < shuffledIcons.length; i++) {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.icon = shuffledIcons[i];
+
+                    const front = document.createElement('div');
+                    front.className = 'front';
+                    front.textContent = shuffledIcons[i];
+
+                    const back = document.createElement('div');
+                    back.className = 'back';
+                    back.innerHTML = '<i class="fas fa-question"></i>';
+
+                    card.appendChild(front);
+                    card.appendChild(back);
+                    gameBoard.appendChild(card);
+
+                    cards.push(card);
+
+                    // Add click event
+                    card.addEventListener('click', () => flipCard(card));
+                }
+            }
+
+            // Flip card function
+            function flipCard(card) {
+                // Prevent flipping if already matched or two cards already flipped
+                if (card.classList.contains('flipped') || flippedCards.length === 2 || card.classList.contains('matched')) {
+                    return;
+                }
+
+                // Start timer on first flip
+                if (!gameStarted) {
+                    startTimer();
+                    gameStarted = true;
+                }
+
+                // Flip the card
+                card.classList.add('flipped');
+                flippedCards.push(card);
+
+                // If two cards are flipped, check for match
+                if (flippedCards.length === 2) {
+                    moves++;
+                    movesElement.textContent = moves;
+
+                    const [card1, card2] = flippedCards;
+                    const isMatch = card1.dataset.icon === card2.dataset.icon;
+
+                    if (isMatch) {
+                        // Match found
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        matchedPairs++;
+                        score += 100;
+                        scoreElement.textContent = score;
+                        flippedCards = [];
+
+                        // Check win condition
+                        if (matchedPairs === totalPairs) {
+                            endGame();
+                        }
+                    } else {
+                        // No match, flip back after delay
+                        setTimeout(() => {
+                            card1.classList.remove('flipped');
+                            card2.classList.remove('flipped');
+                            flippedCards = [];
+                        }, 800);
+                    }
+                }
+            }
+
+            // Timer
+            function startTimer() {
+                timerInterval = setInterval(() => {
+                    timer++;
+                    timerElement.textContent = `${timer}s`;
+                }, 1000);
+            }
+
+            // End game
+            function endGame() {
+                clearInterval(timerInterval);
+                const finalScore = score + Math.max(0, 500 - moves * 10 - timer * 2);
+                scoreElement.textContent = finalScore;
+
+                messageText.innerHTML = `🎉 You Win!<br>Moves: ${moves} | Time: ${timer}s | Score: ${finalScore}`;
+                playAgainButton.classList.remove('hidden');
+
+                // Confetti celebration
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            }
+
+            // Event Listeners
+            restartButton.addEventListener('click', initGame);
+            playAgainButton.addEventListener('click', initGame);
+
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-theme');
+                themeToggle.innerHTML = document.body.classList.contains('dark-theme') 
+                    ? '<i class="fas fa-sun"></i> Light Mode' 
+                    : '<i class="fas fa-palette"></i> Theme';
+            });
+
+            // Initialize game on load
+            initGame();
+        });
+    </script>
+</body>
+</html>
